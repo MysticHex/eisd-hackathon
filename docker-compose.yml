@@ -1,0 +1,62 @@
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASS=password
+      - DB_NAME=digital_industry
+      - REDIS_HOST=redis
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - USE_MOCK_OCR=true
+    depends_on:
+      - mysql
+      - redis
+      - minio
+    networks:
+      - digital-net
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: digital_industry
+    ports:
+      - "3307:3306" # Host port 3307 to avoid conflicts
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - digital-net
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - digital-net
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - digital-net
+
+volumes:
+  mysql_data:
+  minio_data:
+
+networks:
+  digital-net:
