@@ -1,13 +1,36 @@
-const { DataTypes } = require('sequelize');
-const sequelize = require('../../../shared/db');
+const TicsEvent = require('../models/tics_event.model');
+const llmAdapter = require('../../../shared/adapters/llm.adapter');
 
-const TicsEvent = sequelize.define('TicsEvent', {
-  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  station_id: { type: DataTypes.STRING, allowNull: false }, // e.g., "STATION-01"
-  unit_id: { type: DataTypes.STRING, allowNull: false }, // e.g., Product Serial
-  event_type: { type: DataTypes.ENUM('START', 'STOP', 'ERROR'), allowNull: false },
-  timestamp: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-  metadata: { type: DataTypes.TEXT('long') } // JSON payload
-}, { tableName: 'tics_events', underscored: true });
+class TicsService {
+  async ingestBatch(events) {
+    // Bulk create events
+    // Ensure metadata is stringified if it's an object, as the model defines it as TEXT
+    const formattedEvents = events.map(event => ({
+      ...event,
+      metadata: typeof event.metadata === 'object' ? JSON.stringify(event.metadata) : event.metadata
+    }));
+    
+    return await TicsEvent.bulkCreate(formattedEvents);
+  }
 
-module.exports = TicsEvent;
+  async getLatestAnalysis() {
+    // Fetch recent events to analyze
+    // For simplicity, let's fetch the last 10 events
+    const recentEvents = await TicsEvent.findAll({
+      limit: 10,
+      order: [['timestamp', 'DESC']]
+    });
+
+    if (recentEvents.length === 0) {
+      return "No data available for analysis.";
+    }
+
+    // Construct a prompt from events
+    const prompt = `Analyze the following production events for efficiency and errors: ${JSON.stringify(recentEvents)}`;
+    
+    // Call LLM Adapter
+    return await llmAdapter.generateRecommendation(prompt);
+  }
+}
+
+module.exports = new TicsService();

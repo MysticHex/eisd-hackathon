@@ -1,7 +1,8 @@
 const sequelize = require('./index');
 // Import models to ensure they are registered
 require('./models/OcrDocument');
-// require('./models/User'); // Add other models here
+require('../../modules/traceability/models/shipment.model');
+require('../../modules/tics/models/tics_event.model');
 const logger = require('../utils/logger');
 
 const syncDb = async () => {

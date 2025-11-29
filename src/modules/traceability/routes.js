@@ -58,13 +58,8 @@ router.post('/', async (req, res) => {
       batch_no,
       supplier_name,
       status: ['MATCHED', 'MISMATCH', 'PENDING'].includes(status) ? status : 'PENDING',
-      items_json: (items_json !== null && typeof items_json === 'object' && !Array.isArray(items_json)) 
-        ? JSON.stringify(items_json) 
-        : Array.isArray(items_json) 
-          ? JSON.stringify(items_json)
-          : typeof items_json === 'string' 
-            ? items_json 
-            : undefined    };
+      items_json
+    };
 
     const shipment = await Shipment.create(payload);
     res.status(201).json(shipment);
