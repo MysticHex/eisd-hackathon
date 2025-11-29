@@ -3,7 +3,7 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 COPY package.json package-lock.json* ./
 # If you use bun locally but want node in prod, or just npm:
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 COPY . .
 
