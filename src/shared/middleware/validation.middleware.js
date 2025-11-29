@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
+const config = require('../../config');
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader) {
-    // For hackathon demo convenience: if no token, maybe allow as 'guest' or fail?
-    // Let's return 401 to show we have security.
     return res.status(401).json({ message: 'No token provided' });
   }
 
@@ -16,13 +15,7 @@ const authenticate = (req, res, next) => {
   const token = authHeader.split(' ')[1];
   
   try {
-    // Bypass verify if it's a special "DEMO_TOKEN"
-    if (token === 'DEMO_TOKEN') {
-        req.user = { id: 'uuid-admin', role: 'admin' };
-        return next();
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, config.jwtSecret);
     req.user = decoded;
     next();
   } catch (error) {
@@ -33,7 +26,7 @@ const authenticate = (req, res, next) => {
 const authorize = (roles = []) => {
   return (req, res, next) => {
     if (!req.user) {
-      throw new Error('authorize middleware requires authenticate middleware to run first');
+      return res.status(401).json({ message: 'Unauthorized' });
     }
     if (roles.length && !roles.includes(req.user.role)) {
       return res.status(403).json({ message: 'Forbidden' });

@@ -1,7 +1,15 @@
 require('dotenv').config();
 
+const requiredEnvVars = ['JWT_SECRET', 'MINIO_ACCESS_KEY', 'MINIO_SECRET_KEY'];
+const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
+
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+}
+
 module.exports = {
   port: process.env.PORT || 3000,
+  jwtSecret: process.env.JWT_SECRET,
   db: {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 3306,

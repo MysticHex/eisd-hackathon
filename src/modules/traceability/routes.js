@@ -50,14 +50,21 @@ router.post('/', async (req, res) => {
     if (!batch_no || typeof batch_no !== 'string') {
       return res.status(400).json({ message: 'batch_no is required and must be a string' });
     }
-
+    if (supplier_name !== undefined && typeof supplier_name !== 'string') {
+      return res.status(400).json({ message: 'supplier_name must be a string' });
+    }
     // Whitelist allowed fields
     const payload = {
       batch_no,
       supplier_name,
       status: ['MATCHED', 'MISMATCH', 'PENDING'].includes(status) ? status : 'PENDING',
-      items_json: typeof items_json === 'object' ? JSON.stringify(items_json) : items_json
-    };
+      items_json: (items_json !== null && typeof items_json === 'object' && !Array.isArray(items_json)) 
+        ? JSON.stringify(items_json) 
+        : Array.isArray(items_json) 
+          ? JSON.stringify(items_json)
+          : typeof items_json === 'string' 
+            ? items_json 
+            : undefined    };
 
     const shipment = await Shipment.create(payload);
     res.status(201).json(shipment);

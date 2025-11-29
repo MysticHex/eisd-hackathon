@@ -10,9 +10,9 @@ exports.ingestEvents = async (req, res, next) => {
       return res.status(400).json({ message: "'events' array exceeds maximum size of 1000" });
     }
     // Validate each event has required structure
-    const invalidEvent = events.find(e => !e || typeof e !== 'object' || Array.isArray(e));
-    if (invalidEvent !== undefined) {
-      return res.status(400).json({ message: "'events' must contain only valid objects" });
+    const invalidIndex = events.findIndex(e => e === null || typeof e !== 'object' || Array.isArray(e));
+    if (invalidIndex >= 0) {
+      return res.status(400).json({ message: `'events' must contain only valid objects (invalid item at index ${invalidIndex})` });
     }    
     const result = await ticsService.ingestBatch(events);
     res.status(201).json({ message: 'Events ingested', data: result });

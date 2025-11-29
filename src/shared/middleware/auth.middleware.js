@@ -1,4 +1,10 @@
 const jwt = require('jsonwebtoken');
+
+const secret = process.env.JWT_SECRET;
+if (!secret) {
+  throw new Error('FATAL: JWT_SECRET is not defined in environment variables');
+}
+
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
@@ -13,16 +19,15 @@ const authenticate = (req, res, next) => {
   }
   const token = parts[1];  
   try {
-    // Use configured secret if available, otherwise fall back to a default (only for dev/hackathon)
-    const secret = process.env.JWT_SECRET || 'secret';
-    const decoded = jwt.verify(token, secret);
+    const decoded = jwt.verify(token, secret, { algorithms: ['HS256'] });
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ message: 'Invalid token' });
+    // Token expired or invalid signature
+    const statusCode = error.name === 'TokenExpiredError' ? 401 : 403;
+    return res.status(statusCode).json({ message: 'Invalid token' });
   }
 };
-
 const authorize = (roles = []) => {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
