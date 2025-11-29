@@ -8,6 +8,11 @@ require('./jobs/ocrWorker');
 
 const startServer = async () => {
   try {
+    if (!process.env.JWT_SECRET) {
+      logger.error('FATAL: JWT_SECRET is not defined in environment variables.');
+      process.exit(1);
+    }
+
     // Ensure DB connection
     await sequelize.authenticate();
     logger.info('Database connection established.');
