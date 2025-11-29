@@ -1,62 +1,56 @@
+version: '3.8'
 
 services:
-  app:
-    build: .
+  # Database Service
+  db:
+    image: mysql:8.0
+    container_name: my-app-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-myapp}
+      MYSQL_USER: ${DB_USER:-user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+    volumes:
+      - db_data:/var/lib/mysql
+      # Automatically load .sql files from ./database folder
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - app-network
+
+  # Backend Service
+  backend:
+    build: ./backend
+    container_name: my-app-backend
+    restart: always
     ports:
       - "3000:3000"
     environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER:-user}
+      - DB_PASS=${DB_PASSWORD:-password}
+      - DB_NAME=${DB_NAME:-myapp}
       - PORT=3000
-      - DB_HOST=mysql
-      - DB_USER=root
-      - DB_PASS=password
-      - DB_NAME=digital_industry
-      - REDIS_HOST=redis
-      - MINIO_ENDPOINT=minio
-      - MINIO_PORT=9000
-      - USE_MOCK_OCR=true
     depends_on:
-      - mysql
-      - redis
-      - minio
+      - db
     networks:
-      - digital-net
+      - app-network
 
-  mysql:
-    image: mysql:8.0
-    environment:
-      MYSQL_ROOT_PASSWORD: password
-      MYSQL_DATABASE: digital_industry
+  # Frontend Service
+  frontend:
+    build: ./frontend
+    container_name: my-app-frontend
+    restart: always
     ports:
-      - "3307:3306" # Host port 3307 to avoid conflicts
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - "80:80"
+    depends_on:
+      - backend
     networks:
-      - digital-net
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-    networks:
-      - digital-net
-
-  minio:
-    image: minio/minio
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    networks:
-      - digital-net
+      - app-network
 
 volumes:
-  mysql_data:
-  minio_data:
+  db_data:
 
 networks:
-  digital-net:
+  app-network:
+    driver: bridge
