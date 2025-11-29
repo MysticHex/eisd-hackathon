@@ -3,8 +3,7 @@ const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
   
   if (!authHeader) {
-    // For hackathon demo convenience: if no token, maybe allow as 'guest' or fail?
-    // Let's return 401 to show we have security.
+    // Require valid token; respond 401 when absent
     return res.status(401).json({ message: 'No token provided' });
   }
 

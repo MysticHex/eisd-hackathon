@@ -4,19 +4,20 @@ describe('LLM Adapter', () => {
 
   beforeEach(() => {
     jest.resetModules();
-    process.env = { ...originalEnv, USE_MOCK_LLM: 'true' };
+    process.env.USE_MOCK_LLM = 'true';
     llmAdapter = require('../../src/shared/adapters/llm.adapter');
   });
 
   afterEach(() => {
-    process.env = originalEnv;
-  });
+    delete process.env.USE_MOCK_LLM;  });
 
   test('should return mock recommendation when mock flag is true', async () => {
     const prompt = "Analyze efficiency data";
     const result = await llmAdapter.generateRecommendation(prompt);
     
-    expect(result).toContain("downtime"); // Assuming mock response echoes or relates
+    // Mock contract: "efficiency" keyword triggers the specific downtime message
+    const expectedResponse = "Detected downtime pattern on Station 3. Suggested Action: Check hydraulic pressure sensor.";
+    expect(result).toBe(expectedResponse);
     expect(typeof result).toBe('string');
   });
 });

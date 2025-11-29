@@ -32,12 +32,13 @@ const authenticate = (req, res, next) => {
 
 const authorize = (roles = []) => {
   return (req, res, next) => {
-    if (!req.user) return res.status(401).json({ message: 'Unauthorized' });
+    if (!req.user) {
+      throw new Error('authorize middleware requires authenticate middleware to run first');
+    }
     if (roles.length && !roles.includes(req.user.role)) {
       return res.status(403).json({ message: 'Forbidden' });
     }
     next();
   };
 };
-
 module.exports = { authenticate, authorize };

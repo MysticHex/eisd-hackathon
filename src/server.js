@@ -9,8 +9,7 @@ require('./jobs/ocrWorker');
 const startServer = async () => {
   try {
     if (!process.env.JWT_SECRET) {
-      logger.error('FATAL: JWT_SECRET is not defined in environment variables.');
-      process.exit(1);
+      throw new Error('JWT_SECRET is not defined in environment variables');
     }
 
     // Ensure DB connection

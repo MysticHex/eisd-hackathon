@@ -8,8 +8,7 @@ exports.generateRecommendation = async (prompt) => {
   
   if (useMock) {
     // Simple heuristic-based mock response
-    if (prompt.includes("efficiency")) {
-      return "Detected downtime pattern on Station 3. Suggested Action: Check hydraulic pressure sensor.";
+    if (prompt.toLowerCase().includes("efficiency")) {      return "Detected downtime pattern on Station 3. Suggested Action: Check hydraulic pressure sensor.";
     }
     return "General optimization: Balanced production flow detected.";
   } else {
